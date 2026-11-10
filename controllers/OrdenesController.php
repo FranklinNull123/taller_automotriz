@@ -46,5 +46,14 @@ switch ($op) {
         $respuesta = !empty($id) ? $ordenModel->registrarPago($id, $monto, $metodo, $referencia) : false;
         header("Location: ../index.php?modulo=ordenes&msg=" . ($respuesta ? "pago_exito" : "pago_error"));
         break;
+
+    case 'actualizar_cotizacion':
+        requirePostRequest();
+        requireValidCsrf();
+        $id = trim($_POST['id'] ?? '');
+        $estado = trim($_POST['cotizacion_estado'] ?? '');
+        $respuesta = !empty($id) ? $ordenModel->actualizarCotizacion($id, $estado) : false;
+        header("Location: ../index.php?modulo=ordenes&msg=" . ($respuesta ? "cotizacion_exito" : "cotizacion_error"));
+        break;
 }
 ?>

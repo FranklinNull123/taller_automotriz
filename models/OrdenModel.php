@@ -13,9 +13,11 @@ class OrdenModel {
         $sql =         "SELECT o.id, o.vehiculo_id, v.placa, o.descripcion_falla, o.estado, o.fecha_ingreso, o.total,
                    COALESCE((SELECT SUM(p.monto) FROM pagos p WHERE p.orden_id = o.id), 0) AS total_pagado,
                    GREATEST(o.total - COALESCE((SELECT SUM(p2.monto) FROM pagos p2 WHERE p2.orden_id = o.id), 0), 0) AS saldo,
+                   COALESCE(c.estado, 'Pendiente') AS cotizacion_estado,
                    (SELECT COUNT(*) FROM orden_detalles od WHERE od.orden_id = o.id) AS repuestos_asignados
             FROM ordenes_servicio o
             INNER JOIN vehiculos v ON o.vehiculo_id = v.id
+            LEFT JOIN cotizaciones c ON c.orden_id = o.id
             ORDER BY o.id DESC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -35,6 +37,10 @@ class OrdenModel {
             ]);
             $ordenId = (int) $this->conn->lastInsertId();
             $this->registrarHistorial($ordenId, null, 'Pendiente');
+            $quote = $this->conn->prepare(
+                "INSERT INTO cotizaciones (orden_id, subtotal, total) VALUES (:orden_id, 0, 0)"
+            );
+            $quote->execute([':orden_id' => $ordenId]);
 
             if ($repuestoId !== null && (int) $repuestoId > 0 && (int) $cantidad > 0) {
                 $stmt = $this->conn->prepare(
@@ -171,6 +177,22 @@ class OrdenModel {
         );
         $stmt->execute([':orden_id' => (int) $ordenId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarCotizacion($ordenId, $estado) {
+        if (!in_array($estado, ['Aprobada', 'Rechazada'], true)) {
+            return false;
+        }
+        $stmt = $this->conn->prepare(
+            "UPDATE cotizaciones
+             SET estado = :estado, aprobada_en = CASE WHEN :estado2 = 'Aprobada' THEN NOW() ELSE NULL END
+             WHERE orden_id = :orden_id"
+        );
+        return $stmt->execute([
+            ':estado' => $estado,
+            ':estado2' => $estado,
+            ':orden_id' => (int) $ordenId
+        ]);
     }
 
     private function registrarHistorial($ordenId, $estadoAnterior, $estadoNuevo) {

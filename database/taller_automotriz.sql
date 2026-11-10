@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS `movimientos_inventario`;
 DROP TABLE IF EXISTS `orden_historial`;
 DROP TABLE IF EXISTS `orden_detalles`;
 DROP TABLE IF EXISTS `pagos`;
+DROP TABLE IF EXISTS `cotizaciones`;
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -265,6 +266,24 @@ CREATE TABLE `pagos` (
   CONSTRAINT `fk_pagos_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`),
   CONSTRAINT `fk_pagos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `cotizaciones` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `orden_id` int NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `descuento` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `impuesto` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `total` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `estado` enum('Pendiente','Aprobada','Rechazada') NOT NULL DEFAULT 'Pendiente',
+  `aprobada_en` datetime DEFAULT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cotizacion_orden` (`orden_id`),
+  CONSTRAINT `fk_cotizacion_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `cotizaciones` (`orden_id`, `subtotal`, `total`, `estado`)
+SELECT o.id, o.total, o.total, 'Aprobada' FROM `ordenes_servicio` o;
 
 INSERT INTO `orden_historial` (`orden_id`, `estado_anterior`, `estado_nuevo`)
 SELECT o.id, NULL, o.estado FROM `ordenes_servicio` o;

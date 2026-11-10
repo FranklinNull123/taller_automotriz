@@ -2,11 +2,17 @@
 require_once 'models/GarantiaModel.php';
 $garModel = new GarantiaModel();
 $garantias = $garModel->listarGarantias();
+$porVencer = $garModel->contarPorVencer();
 ?>
 <div class="row mb-4 align-items-center">
     <div class="col-md-8">
         <h2 class="fw-bold text-dark"><i class="bi bi-shield-check text-danger me-2"></i>Garantías y Recordatorios</h2>
         <p class="text-muted mb-0">Seguimiento de coberturas activas por reparaciones.</p>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><small class="text-muted">Garantías registradas</small><div class="fs-3 fw-bold"><?= count($garantias) ?></div></div></div></div>
+        <div class="col-md-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><small class="text-muted">Por vencer en 30 días</small><div class="fs-3 fw-bold text-warning"><?= $porVencer ?></div></div></div></div>
+        <div class="col-md-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-body"><small class="text-muted">Activas</small><div class="fs-3 fw-bold text-success"><?= count(array_filter($garantias, function ($garantia) { return $garantia['estado_actual'] === 'Activa'; })) ?></div></div></div></div>
     </div>
 </div>
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -30,7 +36,7 @@ $garantias = $garModel->listarGarantias();
                                 <td><?= htmlspecialchars($g['cliente']) ?></td>
                                 <td><?= htmlspecialchars($g['servicio_realizado']) ?></td>
                                 <td><?= htmlspecialchars(date("d/m/Y", strtotime($g['fecha_vencimiento'])), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><span class="badge bg-success px-3 py-2 rounded-pill"><?= htmlspecialchars($g['estado'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                                <td><span class="badge <?= $g['estado_actual'] === 'Vencida' ? 'bg-danger' : ($g['estado_actual'] === 'Reclamada' ? 'bg-secondary' : 'bg-success') ?> px-3 py-2 rounded-pill"><?= htmlspecialchars($g['estado_actual'], ENT_QUOTES, 'UTF-8') ?></span></td>
                                 <td class="text-center pe-4">
                                     <a href="https://wa.me/51<?= rawurlencode($g['telefono']) ?>?text=<?= rawurlencode('Hola ' . $g['cliente'] . ', le escribimos de Taller Automotriz para recordarle sobre la garantía de su servicio (Vence: ' . $g['fecha_vencimiento'] . ').') ?>"
                                         target="_blank"
