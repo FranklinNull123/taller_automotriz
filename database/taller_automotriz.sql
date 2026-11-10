@@ -22,6 +22,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Base de datos: `taller_automotriz`
 --
 
+DROP TABLE IF EXISTS `movimientos_inventario`;
+DROP TABLE IF EXISTS `orden_historial`;
+DROP TABLE IF EXISTS `orden_detalles`;
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -203,6 +206,53 @@ ALTER TABLE `ordenes_servicio`
 
 ALTER TABLE `garantias`
   ADD CONSTRAINT `fk_garantias_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`);
+
+CREATE TABLE `orden_detalles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `orden_id` int NOT NULL,
+  `repuesto_id` int NOT NULL,
+  `cantidad` int NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `consumido` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_orden_repuesto` (`orden_id`,`repuesto_id`),
+  KEY `idx_detalles_repuesto` (`repuesto_id`),
+  CONSTRAINT `fk_detalles_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`),
+  CONSTRAINT `fk_detalles_repuesto` FOREIGN KEY (`repuesto_id`) REFERENCES `repuestos` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `orden_historial` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `orden_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `estado_anterior` enum('Pendiente','En Proceso','Terminado','Entregado') DEFAULT NULL,
+  `estado_nuevo` enum('Pendiente','En Proceso','Terminado','Entregado') NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_historial_orden` (`orden_id`),
+  CONSTRAINT `fk_historial_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`),
+  CONSTRAINT `fk_historial_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `movimientos_inventario` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `repuesto_id` int NOT NULL,
+  `orden_id` int DEFAULT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `tipo` enum('entrada','salida','ajuste') NOT NULL,
+  `cantidad` int NOT NULL,
+  `stock_anterior` int NOT NULL,
+  `stock_nuevo` int NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_movimientos_repuesto` (`repuesto_id`),
+  CONSTRAINT `fk_movimientos_repuesto` FOREIGN KEY (`repuesto_id`) REFERENCES `repuestos` (`id`),
+  CONSTRAINT `fk_movimientos_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_movimientos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `orden_historial` (`orden_id`, `estado_anterior`, `estado_nuevo`)
+SELECT o.id, NULL, o.estado FROM `ordenes_servicio` o;
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 

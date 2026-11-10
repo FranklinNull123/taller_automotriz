@@ -13,10 +13,11 @@ switch ($op) {
         requireValidCsrf();
         $vehiculo_id = trim($_POST['vehiculo_id']);
         $descripcion_falla = trim($_POST['descripcion_falla']);
+        $repuesto_id = !empty($_POST['repuesto_id']) ? (int) $_POST['repuesto_id'] : null;
+        $cantidad = !empty($_POST['cantidad']) ? (int) $_POST['cantidad'] : 0;
         
         if (!empty($vehiculo_id) && !empty($descripcion_falla)) {
-            // El método registrarOrden se creará en el modelo después
-            $respuesta = $ordenModel->registrarOrden($vehiculo_id, $descripcion_falla);
+            $respuesta = $ordenModel->registrarOrden($vehiculo_id, $descripcion_falla, $repuesto_id, $cantidad);
             header("Location: ../index.php?modulo=ordenes&msg=" . ($respuesta ? "exito" : "error"));
         } else {
             header("Location: ../index.php?modulo=ordenes&msg=incompleto");

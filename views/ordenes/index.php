@@ -1,9 +1,11 @@
 <?php
 require_once 'models/OrdenModel.php';
 require_once 'models/ClienteModel.php';
+require_once 'models/InventarioModel.php';
 $ordenModel = new OrdenModel();
 $listaOrdenes = $ordenModel->listarOrdenes();
 $clientes = (new ClienteModel())->listarClientes();
+$repuestos = (new InventarioModel())->listarRepuestos();
 $estados = ['Pendiente', 'En Proceso', 'Terminado', 'Entregado'];
 $mensaje = $_GET['msg'] ?? '';
 ?>
@@ -37,12 +39,14 @@ $mensaje = $_GET['msg'] ?? '';
                         <th class="py-3 border-bottom-0">Falla Reportada</th>
                         <th class="py-3 border-bottom-0">Estado</th>
                         <th class="py-3 border-bottom-0">Fecha Ingreso</th>
+                        <th class="py-3 border-bottom-0">Total</th>
                         <th class="text-center pe-4 py-3 border-bottom-0">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     <?php if(count($listaOrdenes) > 0): ?>
                         <?php foreach($listaOrdenes as $row): ?>
+                            <?php $historialOrden = $ordenModel->listarHistorial((int) $row['id']); ?>
                             <tr>
                                 <td class="ps-4 fw-bold text-secondary">#<?= (int) $row['id'] ?></td>
                                 <td><span class="badge bg-dark border border-secondary"><i class="bi bi-upc"></i> <?= htmlspecialchars($row['placa']) ?></span></td>
@@ -57,6 +61,7 @@ $mensaje = $_GET['msg'] ?? '';
                                     <span class="badge <?= htmlspecialchars($badgeColor, ENT_QUOTES, 'UTF-8') ?> px-3 py-2 rounded-pill"><?= htmlspecialchars($row['estado'], ENT_QUOTES, 'UTF-8') ?></span>
                                 </td>
                                 <td><?= htmlspecialchars(date("d/m/Y", strtotime($row['fecha_ingreso'])), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td class="fw-bold text-success">S/ <?= number_format((float) $row['total'], 2) ?></td>
                                 <td class="text-center pe-4">
                                     <button type="button" class="btn btn-sm btn-light text-success shadow-sm border" title="Actualizar Estado" data-bs-toggle="modal" data-bs-target="#modalEstado<?= (int) $row['id'] ?>"><i class="bi bi-arrow-repeat"></i></button>
                                     <button class="btn btn-sm btn-light text-danger shadow-sm border" title="Imprimir PDF"><i class="bi bi-file-pdf-fill"></i></button>
@@ -64,13 +69,13 @@ $mensaje = $_GET['msg'] ?? '';
                             </tr>
                             <div class="modal fade" id="modalEstado<?= (int) $row['id'] ?>" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Actualizar orden #<?= (int) $row['id'] ?></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                                    <form action="controllers/OrdenesController.php?op=actualizar_estado" method="POST"><div class="modal-body"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><label class="form-label">Nuevo estado</label><select name="estado" class="form-select" required><?php foreach ($estados as $estado): ?><option <?= $row['estado'] === $estado ? 'selected' : '' ?>><?= htmlspecialchars($estado) ?></option><?php endforeach; ?></select></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger">Guardar estado</button></div></form>
+                                    <form action="controllers/OrdenesController.php?op=actualizar_estado" method="POST"><div class="modal-body"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><label class="form-label">Nuevo estado</label><select name="estado" class="form-select mb-4" required><?php foreach ($estados as $estado): ?><option <?= $row['estado'] === $estado ? 'selected' : '' ?>><?= htmlspecialchars($estado) ?></option><?php endforeach; ?></select><h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-1 text-danger"></i>Historial de la orden</h6><div class="border-start border-2 border-danger ps-3"><?php foreach ($historialOrden as $evento): ?><div class="mb-3"><div class="fw-semibold"><?= htmlspecialchars($evento['estado_nuevo']) ?></div><small class="text-muted"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($evento['creado_en']))) ?> · <?= htmlspecialchars($evento['usuario'] ?: 'Sistema') ?></small></div><?php endforeach; ?></div></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger">Guardar estado</button></div></form>
                                 </div></div>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-3 text-light"></i>
                                 <h6 class="fw-bold">No hay órdenes de servicio activas</h6>
                                 <p class="small mb-0">Haz clic en "Nueva Orden" para registrar un vehículo en el taller.</p>
@@ -82,8 +87,22 @@ $mensaje = $_GET['msg'] ?? '';
         </div>
 
         <div class="modal fade" id="modalOrden" tabindex="-1" aria-labelledby="modalOrdenLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-dark text-white"><h5 class="modal-title" id="modalOrdenLabel"><i class="bi bi-clipboard-plus me-2"></i>Nueva orden de servicio</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <form action="controllers/OrdenesController.php?op=guardar" method="POST"><div class="modal-body p-4"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"><label class="form-label">Vehículo <span class="text-danger">*</span></label><select name="vehiculo_id" class="form-select mb-3" required><option value="">Selecciona un vehículo</option><?php foreach ($clientes as $cliente): if (!empty($cliente['placa'])): ?><option value="<?= (int) $cliente['vehiculo_id'] ?>"><?= htmlspecialchars($cliente['placa'] . ' - ' . $cliente['nombre'] . ' (' . trim(($cliente['marca'] ?? '') . ' ' . ($cliente['modelo'] ?? '')) . ')') ?></option><?php endif; endforeach; ?></select><label class="form-label">Falla reportada <span class="text-danger">*</span></label><textarea name="descripcion_falla" class="form-control" rows="4" maxlength="500" required placeholder="Describe el problema del vehículo..."></textarea></div><div class="modal-footer bg-light"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger"><i class="bi bi-check-lg me-1"></i>Crear orden</button></div></form>
+            <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white"><h5 class="modal-title" id="modalOrdenLabel"><i class="bi bi-clipboard-plus me-2"></i>Nueva orden de servicio</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <form action="controllers/OrdenesController.php?op=guardar" method="POST">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
+                        <label class="form-label">Vehículo <span class="text-danger">*</span></label>
+                        <select name="vehiculo_id" class="form-select mb-3" required><option value="">Selecciona un vehículo</option><?php foreach ($clientes as $cliente): if (!empty($cliente['placa'])): ?><option value="<?= (int) $cliente['vehiculo_id'] ?>"><?= htmlspecialchars($cliente['placa'] . ' - ' . $cliente['nombre'] . ' (' . trim(($cliente['marca'] ?? '') . ' ' . ($cliente['modelo'] ?? '')) . ')') ?></option><?php endif; endforeach; ?></select>
+                        <label class="form-label">Falla reportada <span class="text-danger">*</span></label>
+                        <textarea name="descripcion_falla" class="form-control mb-3" rows="4" maxlength="500" required placeholder="Describe el problema del vehículo..."></textarea>
+                        <div class="row g-3">
+                            <div class="col-md-8"><label class="form-label">Repuesto a utilizar <small class="text-muted">(opcional)</small></label><select name="repuesto_id" class="form-select"><option value="">Sin repuesto asignado</option><?php foreach ($repuestos as $repuesto): ?><option value="<?= (int) $repuesto['id'] ?>"><?= htmlspecialchars($repuesto['codigo'] . ' - ' . $repuesto['descripcion']) ?></option><?php endforeach; ?></select></div>
+                            <div class="col-md-4"><label class="form-label">Cantidad</label><input name="cantidad" type="number" class="form-control" min="1" value="1"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger"><i class="bi bi-check-lg me-1"></i>Crear orden</button></div>
+                </form>
             </div></div>
         </div>
     </div>
