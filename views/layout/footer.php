@@ -1,4 +1,6 @@
-</div> 
+</div>
+</main>
+</div>
 
 <!-- Ruta corregida para cargar el JS local -->
 <script src="./assets/js/bootstrap.bundle.min.js"></script>
@@ -6,6 +8,23 @@
 <script src="https://cdn.jsdelivr.net/npm/datatables.net@2.1.8/js/dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.15.10"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const body = document.body;
+    const toggle = document.getElementById('themeToggle');
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    if (localStorage.getItem('taller-theme') === 'dark') body.classList.add('dark-mode');
+    if (toggle) toggle.addEventListener('click', function () {
+        body.classList.toggle('dark-mode');
+        localStorage.setItem('taller-theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+    if (localStorage.getItem('taller-sidebar') === 'collapsed') body.classList.add('sidebar-collapsed');
+    if (sidebarToggle) sidebarToggle.addEventListener('click', function () {
+        body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('taller-sidebar', body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded');
+    });
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('table.table-interactive').forEach(function (table) {
