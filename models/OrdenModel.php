@@ -10,13 +10,13 @@ class OrdenModel {
     }
 
     public function listarOrdenes() {
-        $sql = "SELECT o.id, o.vehiculo_id, v.placa, o.descripcion_falla, o.estado, o.fecha_ingreso, o.total,
-                       COUNT(od.id) AS repuestos_asignados
-                FROM ordenes_servicio o
-                INNER JOIN vehiculos v ON o.vehiculo_id = v.id
-                LEFT JOIN orden_detalles od ON od.orden_id = o.id
-                GROUP BY o.id, o.vehiculo_id, v.placa, o.descripcion_falla, o.estado, o.fecha_ingreso, o.total
-                ORDER BY o.id DESC";
+        $sql =         "SELECT o.id, o.vehiculo_id, v.placa, o.descripcion_falla, o.estado, o.fecha_ingreso, o.total,
+                   COALESCE((SELECT SUM(p.monto) FROM pagos p WHERE p.orden_id = o.id), 0) AS total_pagado,
+                   GREATEST(o.total - COALESCE((SELECT SUM(p2.monto) FROM pagos p2 WHERE p2.orden_id = o.id), 0), 0) AS saldo,
+                   (SELECT COUNT(*) FROM orden_detalles od WHERE od.orden_id = o.id) AS repuestos_asignados
+            FROM ordenes_servicio o
+            INNER JOIN vehiculos v ON o.vehiculo_id = v.id
+            ORDER BY o.id DESC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -113,6 +113,61 @@ class OrdenModel {
              FROM orden_historial h
              LEFT JOIN usuarios u ON u.id = h.usuario_id
              WHERE h.orden_id = :orden_id ORDER BY h.creado_en ASC, h.id ASC"
+        );
+        $stmt->execute([':orden_id' => (int) $ordenId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function registrarPago($ordenId, $monto, $metodo, $referencia = '') {
+        $metodosPermitidos = ['efectivo', 'tarjeta', 'transferencia', 'otro'];
+        $monto = round((float) $monto, 2);
+        if ($monto <= 0 || !in_array($metodo, $metodosPermitidos, true)) {
+            return false;
+        }
+
+        try {
+            $this->conn->beginTransaction();
+            $stmt = $this->conn->prepare(
+                "SELECT o.total, COALESCE(SUM(p.monto), 0) AS pagado
+                 FROM ordenes_servicio o
+                 LEFT JOIN pagos p ON p.orden_id = o.id
+                 WHERE o.id = :id
+                 GROUP BY o.id, o.total
+                 FOR UPDATE"
+            );
+            $stmt->execute([':id' => (int) $ordenId]);
+            $orden = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$orden || $monto > max(0, (float) $orden['total'] - (float) $orden['pagado'])) {
+                throw new RuntimeException('El abono supera el saldo pendiente.');
+            }
+
+            $stmt = $this->conn->prepare(
+                "INSERT INTO pagos (orden_id, usuario_id, monto, metodo, referencia)
+                 VALUES (:orden_id, :usuario_id, :monto, :metodo, :referencia)"
+            );
+            $stmt->execute([
+                ':orden_id' => (int) $ordenId,
+                ':usuario_id' => !empty($_SESSION['usuario_id']) ? (int) $_SESSION['usuario_id'] : null,
+                ':monto' => $monto,
+                ':metodo' => $metodo,
+                ':referencia' => trim($referencia) !== '' ? trim($referencia) : null
+            ]);
+            $this->conn->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return false;
+        }
+    }
+
+    public function listarPagos($ordenId) {
+        $stmt = $this->conn->prepare(
+            "SELECT p.*, u.usuario
+             FROM pagos p
+             LEFT JOIN usuarios u ON u.id = p.usuario_id
+             WHERE p.orden_id = :orden_id ORDER BY p.creado_en DESC, p.id DESC"
         );
         $stmt->execute([':orden_id' => (int) $ordenId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

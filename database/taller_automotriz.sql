@@ -25,6 +25,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `movimientos_inventario`;
 DROP TABLE IF EXISTS `orden_historial`;
 DROP TABLE IF EXISTS `orden_detalles`;
+DROP TABLE IF EXISTS `pagos`;
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -249,6 +250,20 @@ CREATE TABLE `movimientos_inventario` (
   CONSTRAINT `fk_movimientos_repuesto` FOREIGN KEY (`repuesto_id`) REFERENCES `repuestos` (`id`),
   CONSTRAINT `fk_movimientos_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_movimientos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `pagos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `orden_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `monto` decimal(10,2) NOT NULL,
+  `metodo` enum('efectivo','tarjeta','transferencia','otro') NOT NULL DEFAULT 'efectivo',
+  `referencia` varchar(100) DEFAULT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_pagos_orden` (`orden_id`),
+  CONSTRAINT `fk_pagos_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`),
+  CONSTRAINT `fk_pagos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `orden_historial` (`orden_id`, `estado_anterior`, `estado_nuevo`)

@@ -35,5 +35,16 @@ switch ($op) {
             header("Location: ../index.php?modulo=ordenes&msg=" . ($respuesta ? "exito" : "error"));
         }
         break;
+
+    case 'registrar_pago':
+        requirePostRequest();
+        requireValidCsrf();
+        $id = trim($_POST['id'] ?? '');
+        $monto = trim($_POST['monto'] ?? '');
+        $metodo = trim($_POST['metodo'] ?? 'efectivo');
+        $referencia = trim($_POST['referencia'] ?? '');
+        $respuesta = !empty($id) ? $ordenModel->registrarPago($id, $monto, $metodo, $referencia) : false;
+        header("Location: ../index.php?modulo=ordenes&msg=" . ($respuesta ? "pago_exito" : "pago_error"));
+        break;
 }
 ?>

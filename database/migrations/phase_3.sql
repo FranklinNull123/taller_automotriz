@@ -44,6 +44,20 @@ CREATE TABLE IF NOT EXISTS movimientos_inventario (
     CONSTRAINT fk_movimientos_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS pagos (
+    id INT NOT NULL AUTO_INCREMENT,
+    orden_id INT NOT NULL,
+    usuario_id INT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    metodo ENUM('efectivo','tarjeta','transferencia','otro') NOT NULL DEFAULT 'efectivo',
+    referencia VARCHAR(100) NULL,
+    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_pagos_orden (orden_id),
+    CONSTRAINT fk_pagos_orden FOREIGN KEY (orden_id) REFERENCES ordenes_servicio (id),
+    CONSTRAINT fk_pagos_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO orden_historial (orden_id, estado_anterior, estado_nuevo)
 SELECT o.id, NULL, o.estado
 FROM ordenes_servicio o
