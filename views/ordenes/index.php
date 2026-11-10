@@ -1,12 +1,22 @@
 <?php
 require_once 'models/OrdenModel.php';
+require_once 'models/ClienteModel.php';
 $ordenModel = new OrdenModel();
 $listaOrdenes = $ordenModel->listarOrdenes();
+$clientes = (new ClienteModel())->listarClientes();
+$estados = ['Pendiente', 'En Proceso', 'Terminado', 'Entregado'];
+$mensaje = $_GET['msg'] ?? '';
 ?>
+<?php if ($mensaje === 'exito'): ?><div class="alert alert-success border-0 shadow-sm"><i class="bi bi-check-circle me-2"></i>La orden se guardó correctamente.</div><?php elseif ($mensaje === 'error'): ?><div class="alert alert-danger border-0 shadow-sm"><i class="bi bi-exclamation-triangle me-2"></i>No se pudo completar la operación.</div><?php endif; ?>
 <div class="row mb-4 align-items-center">
     <div class="col-md-8">
         <h2 class="mb-0 fw-bold text-dark"><i class="bi bi-clipboard2-pulse text-danger me-2"></i>Gestión de Órdenes</h2>
         <p class="text-muted mb-0">Control de diagnósticos y estado de reparaciones.</p>
+    </div>
+    <div class="row g-3 mb-4">
+        <?php foreach ($estados as $estado): $cantidad = count(array_filter($listaOrdenes, function ($orden) use ($estado) { return $orden['estado'] === $estado; })); ?>
+            <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body"><small class="text-muted"><?= htmlspecialchars($estado) ?></small><div class="fs-3 fw-bold"><?= $cantidad ?></div></div></div></div>
+        <?php endforeach; ?>
     </div>
     <div class="col-md-4 text-end">
         <!-- El botón ya tiene el activador para el modal que crearemos -->
@@ -48,10 +58,15 @@ $listaOrdenes = $ordenModel->listarOrdenes();
                                 </td>
                                 <td><?= htmlspecialchars(date("d/m/Y", strtotime($row['fecha_ingreso'])), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="text-center pe-4">
-                                    <button class="btn btn-sm btn-light text-success shadow-sm border" title="Actualizar Estado"><i class="bi bi-arrow-repeat"></i></button>
+                                    <button type="button" class="btn btn-sm btn-light text-success shadow-sm border" title="Actualizar Estado" data-bs-toggle="modal" data-bs-target="#modalEstado<?= (int) $row['id'] ?>"><i class="bi bi-arrow-repeat"></i></button>
                                     <button class="btn btn-sm btn-light text-danger shadow-sm border" title="Imprimir PDF"><i class="bi bi-file-pdf-fill"></i></button>
                                 </td>
                             </tr>
+                            <div class="modal fade" id="modalEstado<?= (int) $row['id'] ?>" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Actualizar orden #<?= (int) $row['id'] ?></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                                    <form action="controllers/OrdenesController.php?op=actualizar_estado" method="POST"><div class="modal-body"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><label class="form-label">Nuevo estado</label><select name="estado" class="form-select" required><?php foreach ($estados as $estado): ?><option <?= $row['estado'] === $estado ? 'selected' : '' ?>><?= htmlspecialchars($estado) ?></option><?php endforeach; ?></select></div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger">Guardar estado</button></div></form>
+                                </div></div>
+                            </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
@@ -64,6 +79,12 @@ $listaOrdenes = $ordenModel->listarOrdenes();
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+
+        <div class="modal fade" id="modalOrden" tabindex="-1" aria-labelledby="modalOrdenLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-dark text-white"><h5 class="modal-title" id="modalOrdenLabel"><i class="bi bi-clipboard-plus me-2"></i>Nueva orden de servicio</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <form action="controllers/OrdenesController.php?op=guardar" method="POST"><div class="modal-body p-4"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>"><label class="form-label">Vehículo <span class="text-danger">*</span></label><select name="vehiculo_id" class="form-select mb-3" required><option value="">Selecciona un vehículo</option><?php foreach ($clientes as $cliente): if (!empty($cliente['placa'])): ?><option value="<?= (int) $cliente['vehiculo_id'] ?>"><?= htmlspecialchars($cliente['placa'] . ' - ' . $cliente['nombre'] . ' (' . trim(($cliente['marca'] ?? '') . ' ' . ($cliente['modelo'] ?? '')) . ')') ?></option><?php endif; endforeach; ?></select><label class="form-label">Falla reportada <span class="text-danger">*</span></label><textarea name="descripcion_falla" class="form-control" rows="4" maxlength="500" required placeholder="Describe el problema del vehículo..."></textarea></div><div class="modal-footer bg-light"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger"><i class="bi bi-check-lg me-1"></i>Crear orden</button></div></form>
+            </div></div>
         </div>
     </div>
 </div>

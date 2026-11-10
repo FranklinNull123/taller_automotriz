@@ -11,7 +11,7 @@ class ClienteModel {
 
     public function listarClientes() {
         $stmt = $this->conn->prepare(
-            "SELECT c.*, v.placa, v.marca, v.modelo, v.anio
+            "SELECT c.*, v.id AS vehiculo_id, v.placa, v.marca, v.modelo, v.anio
              FROM clientes c
              LEFT JOIN vehiculos v ON v.cliente_id = c.id
              ORDER BY c.id DESC"
