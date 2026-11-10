@@ -34,7 +34,7 @@ $listaOrdenes = $ordenModel->listarOrdenes();
                     <?php if(count($listaOrdenes) > 0): ?>
                         <?php foreach($listaOrdenes as $row): ?>
                             <tr>
-                                <td class="ps-4 fw-bold text-secondary">#<?= $row['id'] ?></td>
+                                <td class="ps-4 fw-bold text-secondary">#<?= (int) $row['id'] ?></td>
                                 <td><span class="badge bg-dark border border-secondary"><i class="bi bi-upc"></i> <?= htmlspecialchars($row['placa']) ?></span></td>
                                 <td class="text-truncate" style="max-width: 250px;"><?= htmlspecialchars($row['descripcion_falla']) ?></td>
                                 <td>
@@ -44,9 +44,9 @@ $listaOrdenes = $ordenModel->listarOrdenes();
                                         if($row['estado'] == 'En Proceso') $badgeColor = 'bg-info text-dark';
                                         if($row['estado'] == 'Terminado') $badgeColor = 'bg-success';
                                     ?>
-                                    <span class="badge <?= $badgeColor ?> px-3 py-2 rounded-pill"><?= $row['estado'] ?></span>
+                                    <span class="badge <?= htmlspecialchars($badgeColor, ENT_QUOTES, 'UTF-8') ?> px-3 py-2 rounded-pill"><?= htmlspecialchars($row['estado'], ENT_QUOTES, 'UTF-8') ?></span>
                                 </td>
-                                <td><?= date("d/m/Y", strtotime($row['fecha_ingreso'])) ?></td>
+                                <td><?= htmlspecialchars(date("d/m/Y", strtotime($row['fecha_ingreso'])), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td class="text-center pe-4">
                                     <button class="btn btn-sm btn-light text-success shadow-sm border" title="Actualizar Estado"><i class="bi bi-arrow-repeat"></i></button>
                                     <button class="btn btn-sm btn-light text-danger shadow-sm border" title="Imprimir PDF"><i class="bi bi-file-pdf-fill"></i></button>

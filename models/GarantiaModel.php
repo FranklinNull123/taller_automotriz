@@ -20,5 +20,17 @@ class GarantiaModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function registrarGarantia($ordenId, $servicioRealizado, $fechaVencimiento) {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO garantias (orden_id, servicio_realizado, fecha_vencimiento)
+             VALUES (:orden_id, :servicio_realizado, :fecha_vencimiento)"
+        );
+        return $stmt->execute([
+            ':orden_id' => (int) $ordenId,
+            ':servicio_realizado' => $servicioRealizado,
+            ':fecha_vencimiento' => $fechaVencimiento
+        ]);
+    }
 }
 ?>

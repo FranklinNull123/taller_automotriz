@@ -67,9 +67,12 @@ $moduloActual = isset($_GET['modulo']) ? $_GET['modulo'] : '';
                         <li><h6 class="dropdown-header"><i class="bi bi-shield-check me-1 text-success"></i>Sesión activa</h6></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item text-danger fw-semibold" href="controllers/AuthController.php?op=logout">
-                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                            </a>
+                            <form action="controllers/AuthController.php?op=logout" method="POST">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
+                                <button type="submit" class="dropdown-item text-danger fw-semibold">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                                </button>
+                            </form>
                         </li>
                     </ul>
                 </li>

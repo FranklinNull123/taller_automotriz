@@ -1,11 +1,15 @@
 <?php
 require_once __DIR__ . '/../models/OrdenModel.php';
+require_once __DIR__ . '/../includes/auth.php';
+requireAuth();
 $ordenModel = new OrdenModel();
 
 $op = isset($_GET['op']) ? $_GET['op'] : '';
 
 switch ($op) {
     case 'guardar':
+        requirePostRequest();
+        requireValidCsrf();
         $vehiculo_id = trim($_POST['vehiculo_id']);
         $descripcion_falla = trim($_POST['descripcion_falla']);
         
@@ -19,6 +23,8 @@ switch ($op) {
         break;
 
     case 'actualizar_estado':
+        requirePostRequest();
+        requireValidCsrf();
         $id = trim($_POST['id']);
         $estado = trim($_POST['estado']);
         

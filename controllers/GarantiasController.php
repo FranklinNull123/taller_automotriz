@@ -1,11 +1,15 @@
 <?php
 require_once __DIR__ . '/../models/GarantiaModel.php';
+require_once __DIR__ . '/../includes/auth.php';
+requireAuth();
 $garantiaModel = new GarantiaModel();
 
 $op = isset($_GET['op']) ? $_GET['op'] : '';
 
 switch ($op) {
     case 'guardar':
+        requirePostRequest();
+        requireValidCsrf();
         $orden_id = trim($_POST['orden_id']);
         $servicio_realizado = trim($_POST['servicio_realizado']);
         $fecha_vencimiento = trim($_POST['fecha_vencimiento']);

@@ -11,15 +11,15 @@ class Conexion {
 
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4",
                 $this->username,
                 $this->password
             );
-            // Configurar codificación para caracteres especiales y manejo de errores
-            $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch(PDOException $exception) {
-            echo "Error de conexión: " . $exception->getMessage();
+            error_log('Error de conexión a la base de datos: ' . $exception->getMessage());
+            throw new RuntimeException('No se pudo conectar con la base de datos.');
         }
 
         return $this->conn;

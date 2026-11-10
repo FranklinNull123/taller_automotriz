@@ -32,8 +32,8 @@ $repuestos = $invModel->listarRepuestos();
                         <td class="ps-4"><span class="badge bg-dark"><?= htmlspecialchars($r['codigo']) ?></span></td>
                         <td class="fw-bold"><?= htmlspecialchars($r['descripcion']) ?></td>
                         <td><?= htmlspecialchars($r['categoria']) ?></td>
-                        <td><span class="badge bg-success px-2 py-1"><?= $r['stock'] ?> unid.</span></td>
-                        <td class="fw-bold text-success">S/ <?= number_format($r['precio_unitario'], 2) ?></td>
+                        <td><span class="badge bg-success px-2 py-1"><?= (int) $r['stock'] ?> unid.</span></td>
+                        <td class="fw-bold text-success">S/ <?= number_format((float) $r['precio_unitario'], 2) ?></td>
                         <td class="text-center pe-4">
                             <button class="btn btn-sm btn-light border shadow-sm text-danger"><i class="bi bi-trash"></i></button>
                         </td>

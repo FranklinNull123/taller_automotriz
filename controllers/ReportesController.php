@@ -1,6 +1,8 @@
 <?php
 require_once '../models/ReporteModel.php';
 require_once '../vendor/autoload.inc.php'; // Cargar Dompdf
+require_once __DIR__ . '/../includes/auth.php';
+requireAuth();
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -9,6 +11,13 @@ $op = isset($_GET['op']) ? $_GET['op'] : '';
 
 switch ($op) {
     case 'generar_pdf':
+        $reporteModel = new ReporteModel();
+        $estadisticas = $reporteModel->obtenerEstadisticas();
+        $fechaReporte = htmlspecialchars(date('d/m/Y'), ENT_QUOTES, 'UTF-8');
+        $ordenesMes = (int) $estadisticas['ordenes_mes'];
+        $enTaller = (int) $estadisticas['en_taller'];
+        $ingresos = number_format((float) $estadisticas['ingresos'], 2);
+
         // Habilitar carga de estilos e instanciar Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -30,7 +39,7 @@ switch ($op) {
         <body>
             <div class="cabecera">
                 <h2>REPORTE DE PRODUCTIVIDAD</h2>
-                <p>Taller Automotriz - ' . date('d/m/Y') . '</p>
+                <p>Taller Automotriz - ' . $fechaReporte . '</p>
             </div>
             <table>
                 <thead>
@@ -42,11 +51,15 @@ switch ($op) {
                 <tbody>
                     <tr>
                         <td>Órdenes Atendidas (Mes)</td>
-                        <td>Consulta en base de datos</td>
+                        <td>' . $ordenesMes . '</td>
                     </tr>
                     <tr>
                         <td>Vehículos en Taller</td>
-                        <td>Consulta en base de datos</td>
+                        <td>' . $enTaller . '</td>
+                    </tr>
+                    <tr>
+                        <td>Ingresos del mes</td>
+                        <td>S/ ' . $ingresos . '</td>
                     </tr>
                 </tbody>
             </table>

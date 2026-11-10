@@ -1,4 +1,7 @@
 .vscode/
+vendor/
+.env
+logs/
 uploads/*
 !uploads/.gitkeep
 *.log

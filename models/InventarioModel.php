@@ -14,5 +14,24 @@ class InventarioModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function registrarRepuesto($codigo, $descripcion, $categoria, $stock, $precioUnitario) {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO repuestos (codigo, descripcion, categoria, stock, precio_unitario)
+             VALUES (:codigo, :descripcion, :categoria, :stock, :precio_unitario)"
+        );
+        return $stmt->execute([
+            ':codigo' => $codigo,
+            ':descripcion' => $descripcion,
+            ':categoria' => $categoria ?: null,
+            ':stock' => max(0, (int) $stock),
+            ':precio_unitario' => $precioUnitario
+        ]);
+    }
+
+    public function eliminarRepuesto($id) {
+        $stmt = $this->conn->prepare("DELETE FROM repuestos WHERE id = :id");
+        return $stmt->execute([':id' => (int) $id]);
+    }
 }
 ?>

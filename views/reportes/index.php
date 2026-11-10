@@ -8,16 +8,16 @@ $estadisticas = $reporteModel->obtenerEstadisticas();
         <h2 class="mb-0">Reportes de Productividad</h2>
     </div>
     <div class="col-md-4 text-end">
-        <button type="button" class="btn btn-secondary">
+        <a href="controllers/ReportesController.php?op=generar_pdf" target="_blank" rel="noopener" class="btn btn-secondary">
             <i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar PDF
-        </button>
+        </a>
     </div>
 </div>
 <div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm bg-primary text-white">
             <div class="card-body p-4 text-center">
-                <h3 class="fw-bold">0</h3>
+                <h3 class="fw-bold"><?= (int) $estadisticas['ordenes_mes'] ?></h3>
                 <p class="mb-0">Órdenes Atendidas (Mes)</p>
             </div>
         </div>
@@ -25,7 +25,7 @@ $estadisticas = $reporteModel->obtenerEstadisticas();
     <div class="col-md-4">
         <div class="card border-0 shadow-sm bg-warning text-dark">
             <div class="card-body p-4 text-center">
-                <h3 class="fw-bold">0</h3>
+                <h3 class="fw-bold"><?= (int) $estadisticas['en_taller'] ?></h3>
                 <p class="mb-0">Vehículos en Taller</p>
             </div>
         </div>
@@ -33,7 +33,7 @@ $estadisticas = $reporteModel->obtenerEstadisticas();
     <div class="col-md-4">
         <div class="card border-0 shadow-sm bg-success text-white">
             <div class="card-body p-4 text-center">
-                <h3 class="fw-bold">S/ 0.00</h3>
+                <h3 class="fw-bold">S/ <?= htmlspecialchars(number_format((float) $estadisticas['ingresos'], 2), ENT_QUOTES, 'UTF-8') ?></h3>
                 <p class="mb-0">Ingresos Totales</p>
             </div>
         </div>

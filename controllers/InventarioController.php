@@ -1,11 +1,15 @@
 <?php
 require_once __DIR__ . '/../models/InventarioModel.php';
+require_once __DIR__ . '/../includes/auth.php';
+requireAuth();
 $inventarioModel = new InventarioModel();
 
 $op = isset($_GET['op']) ? $_GET['op'] : '';
 
 switch ($op) {
     case 'guardar':
+        requirePostRequest();
+        requireValidCsrf();
         $codigo = trim($_POST['codigo']);
         $descripcion = trim($_POST['descripcion']);
         $categoria = trim($_POST['categoria']);
@@ -21,7 +25,9 @@ switch ($op) {
         break;
 
     case 'eliminar':
-        $id = isset($_GET['id']) ? $_GET['id'] : '';
+        requirePostRequest();
+        requireValidCsrf();
+        $id = isset($_POST['id']) ? $_POST['id'] : '';
         if (!empty($id)) {
             $respuesta = $inventarioModel->eliminarRepuesto($id);
             header("Location: ../index.php?modulo=inventario&msg=" . ($respuesta ? "eliminado" : "error"));

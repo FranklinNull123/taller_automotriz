@@ -10,6 +10,7 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
+SET FOREIGN_KEY_CHECKS = 0;
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -20,6 +21,22 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `taller_automotriz`
 --
+
+DROP TABLE IF EXISTS `usuarios`;
+CREATE TABLE IF NOT EXISTS `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario` varchar(80) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `rol` enum('admin','recepcion','mecanico') NOT NULL DEFAULT 'recepcion',
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `debe_cambiar_password` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuario` (`usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `usuarios` (`usuario`, `password_hash`, `rol`, `activo`, `debe_cambiar_password`)
+VALUES ('admin', '$argon2id$v=19$m=65536,t=4,p=1$SXUzMVg1Snd6VkdTUU5nYg$BwhEfTBgKfbdeIgp63VJrVHrs/lyRcMw8ARTtkMG1Ls', 'admin', 1, 1)
+ON DUPLICATE KEY UPDATE `usuario` = VALUES(`usuario`);
 
 -- --------------------------------------------------------
 
@@ -37,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `documento` (`documento`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `clientes`
@@ -63,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `garantias` (
   `estado` enum('Activa','Vencida','Reclamada') DEFAULT 'Activa',
   PRIMARY KEY (`id`),
   KEY `orden_id` (`orden_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `garantias`
@@ -85,9 +102,10 @@ CREATE TABLE IF NOT EXISTS `ordenes_servicio` (
   `descripcion_falla` text,
   `estado` enum('Pendiente','En Proceso','Terminado','Entregado') DEFAULT 'Pendiente',
   `fecha_ingreso` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `total` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `vehiculo_id` (`vehiculo_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `ordenes_servicio`
@@ -114,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `repuestos` (
   `precio_unitario` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `codigo` (`codigo`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `repuestos`
@@ -141,8 +159,9 @@ CREATE TABLE IF NOT EXISTS `vehiculos` (
   `anio` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `placa` (`placa`),
-  KEY `cliente_id` (`cliente_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+  KEY `cliente_id` (`cliente_id`),
+  CONSTRAINT `fk_vehiculos_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `vehiculos`
@@ -152,6 +171,16 @@ INSERT INTO `vehiculos` (`id`, `cliente_id`, `placa`, `marca`, `modelo`, `anio`)
 (1, 1, 'W1A-123', 'Toyota', 'Hilux', 2020),
 (2, 2, 'F4B-456', 'Nissan', 'Sentra', 2018),
 (3, 3, 'C7C-789', 'Hyundai', 'Tucson', 2022);
+
+ALTER TABLE `vehiculos`
+  ADD CONSTRAINT `fk_vehiculos_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`);
+
+ALTER TABLE `ordenes_servicio`
+  ADD CONSTRAINT `fk_ordenes_vehiculo` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`);
+
+ALTER TABLE `garantias`
+  ADD CONSTRAINT `fk_garantias_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_servicio` (`id`);
+SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

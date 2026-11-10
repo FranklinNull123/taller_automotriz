@@ -1,5 +1,7 @@
 <?php
 require_once '../models/ClienteModel.php';
+require_once __DIR__ . '/../includes/auth.php';
+requireAuth();
 
 $clienteModel = new ClienteModel();
 
@@ -8,6 +10,8 @@ $op = isset($_GET['op']) ? $_GET['op'] : '';
 
 switch ($op) {
     case 'guardar':
+        requirePostRequest();
+        requireValidCsrf();
         // Recibir y limpiar los datos del formulario por POST
         $nombre = trim($_POST['nombre'] ?? '');
         $documento = trim($_POST['documento'] ?? '');

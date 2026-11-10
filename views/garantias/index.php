@@ -26,13 +26,13 @@ $garantias = $garModel->listarGarantias();
                 <tbody>
                     <?php if (count($garantias) > 0): foreach ($garantias as $g): ?>
                             <tr>
-                                <td class="ps-4 fw-bold">#<?= $g['orden_id'] ?></td>
+                                <td class="ps-4 fw-bold">#<?= (int) $g['orden_id'] ?></td>
                                 <td><?= htmlspecialchars($g['cliente']) ?></td>
                                 <td><?= htmlspecialchars($g['servicio_realizado']) ?></td>
-                                <td><?= date("d/m/Y", strtotime($g['fecha_vencimiento'])) ?></td>
-                                <td><span class="badge bg-success px-3 py-2 rounded-pill"><?= $g['estado'] ?></span></td>
+                                <td><?= htmlspecialchars(date("d/m/Y", strtotime($g['fecha_vencimiento'])), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><span class="badge bg-success px-3 py-2 rounded-pill"><?= htmlspecialchars($g['estado'], ENT_QUOTES, 'UTF-8') ?></span></td>
                                 <td class="text-center pe-4">
-                                    <a href="https://wa.me/51<?= $g['telefono'] ?>?text=Hola%20<?= urlencode($g['cliente']) ?>,%20le%20escribimos%20de%20Taller%20Automotriz%20para%20recordarle%20sobre%20la%20garantía%20de%20su%20servicio%20(Vence:%20<?= $g['fecha_vencimiento'] ?>)."
+                                    <a href="https://wa.me/51<?= rawurlencode($g['telefono']) ?>?text=<?= rawurlencode('Hola ' . $g['cliente'] . ', le escribimos de Taller Automotriz para recordarle sobre la garantía de su servicio (Vence: ' . $g['fecha_vencimiento'] . ').') ?>"
                                         target="_blank"
                                         class="btn btn-sm btn-light border shadow-sm text-success"
                                         title="Enviar WhatsApp">
