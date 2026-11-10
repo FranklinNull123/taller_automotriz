@@ -19,7 +19,7 @@ $listaOrdenes = $ordenModel->listarOrdenes();
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 table-interactive">
                 <thead class="table-light text-secondary">
                     <tr>
                         <th class="ps-4 py-3 border-bottom-0">ID</th>

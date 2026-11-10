@@ -6,6 +6,8 @@
     <title>Sistema Taller Automotriz</title>
     <!-- Bootstrap CSS Local -->
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt@2.1.8/css/dataTables.dataTables.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -23,6 +25,10 @@
         .card-dashboard { transition: transform 0.2s, box-shadow 0.2s; border-radius: 12px; }
         .card-dashboard:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; border-color: #cbd5e1 !important; }
         .icon-lg { font-size: 3rem; }
+        .dashboard-hero { background: linear-gradient(120deg, #172033, #334155); border-radius: 1.25rem; }
+        .kpi-card { border: 0; border-radius: 1rem; transition: transform .2s ease, box-shadow .2s ease; }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 .75rem 1.5rem rgba(15, 23, 42, .12) !important; }
+        .kpi-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; font-size: 1.25rem; }
     </style>
 </head>
 <body>

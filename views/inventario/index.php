@@ -15,7 +15,7 @@ $repuestos = $invModel->listarRepuestos();
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 table-interactive">
                 <thead class="table-light text-secondary">
                     <tr>
                         <th class="ps-4 py-3">Código</th>
@@ -35,7 +35,11 @@ $repuestos = $invModel->listarRepuestos();
                         <td><span class="badge bg-success px-2 py-1"><?= (int) $r['stock'] ?> unid.</span></td>
                         <td class="fw-bold text-success">S/ <?= number_format((float) $r['precio_unitario'], 2) ?></td>
                         <td class="text-center pe-4">
-                            <button class="btn btn-sm btn-light border shadow-sm text-danger"><i class="bi bi-trash"></i></button>
+                            <form action="controllers/InventarioController.php?op=eliminar" method="POST" class="d-inline" data-confirm="El repuesto será eliminado del inventario.">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-light border shadow-sm text-danger" title="Eliminar repuesto"><i class="bi bi-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                     <?php endforeach; else: ?>

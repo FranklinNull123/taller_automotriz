@@ -113,7 +113,7 @@ $mensaje = $_GET['msg'] ?? '';
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table client-table table-hover align-middle mb-0" id="tablaClientes">
+        <table class="table client-table table-hover align-middle mb-0 table-interactive" id="tablaClientes">
             <thead class="table-light text-secondary">
                 <tr>
                     <th class="ps-4 py-3">Cliente</th>
