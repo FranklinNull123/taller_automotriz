@@ -176,6 +176,7 @@ $mensaje = $_GET['msg'] ?? '';
                         <div class="col-md-6"><label class="form-label">Nombre completo <span class="text-danger">*</span></label><input type="text" name="nombre" class="form-control" required maxlength="150"></div>
                         <div class="col-md-6"><label class="form-label">Documento <span class="text-danger">*</span></label><input type="text" name="documento" class="form-control" required maxlength="20"></div>
                         <div class="col-md-6"><label class="form-label">Teléfono</label><input type="tel" name="telefono" class="form-control" maxlength="20"></div>
+                        <div class="col-md-6"><label class="form-label">Correo electrónico</label><input type="email" name="email" class="form-control" maxlength="100"></div>
                     </div>
                     <hr class="my-4">
                     <h6 class="text-danger fw-bold mb-3">Datos del vehículo</h6>

@@ -20,7 +20,7 @@ class ClienteModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function registrarClienteYVehiculo($nombre, $documento, $telefono, $placa, $marca, $modelo, $anio) {
+    public function registrarClienteYVehiculo($nombre, $documento, $telefono, $email, $placa, $marca, $modelo, $anio) {
         try {
             $stmt = $this->conn->prepare(
                 "SELECT
@@ -37,13 +37,14 @@ class ClienteModel {
             }
 
             $stmt = $this->conn->prepare(
-                "INSERT INTO clientes (nombre, documento, telefono)
-                 VALUES (:nombre, :documento, :telefono)"
+                "INSERT INTO clientes (nombre, documento, telefono, email)
+                 VALUES (:nombre, :documento, :telefono, :email)"
             );
             $stmt->execute([
                 ':nombre' => $nombre,
                 ':documento' => $documento,
-                ':telefono' => $telefono ?: null
+                ':telefono' => $telefono ?: null,
+                ':email' => $email ?: null
             ]);
 
             $clienteId = $this->conn->lastInsertId();

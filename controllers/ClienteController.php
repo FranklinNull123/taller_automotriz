@@ -17,6 +17,7 @@ switch ($op) {
         $nombre = trim($_POST['nombre'] ?? '');
         $documento = trim($_POST['documento'] ?? '');
         $telefono = trim($_POST['telefono'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         
         $placa = strtoupper(trim($_POST['placa'] ?? ''));
         $marca = trim($_POST['marca'] ?? '');
@@ -27,7 +28,7 @@ switch ($op) {
         if (!empty($nombre) && !empty($documento) && !empty($placa)) {
             
             // Llamar al modelo para registrar en ambas tablas
-            $respuesta = $clienteModel->registrarClienteYVehiculo($nombre, $documento, $telefono, $placa, $marca, $modelo, $anio);
+            $respuesta = $clienteModel->registrarClienteYVehiculo($nombre, $documento, $telefono, $email, $placa, $marca, $modelo, $anio);
 
             if ($respuesta) {
                 // Redirigir con mensaje de éxito

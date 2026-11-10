@@ -179,6 +179,32 @@ class OrdenModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerOrdenCompleta($ordenId) {
+        $stmt = $this->conn->prepare(
+            "SELECT o.*, v.placa, v.marca, v.modelo, v.anio,
+                    c.nombre AS cliente, c.email, c.telefono,
+                    COALESCE((SELECT SUM(p.monto) FROM pagos p WHERE p.orden_id = o.id), 0) AS total_pagado,
+                    GREATEST(o.total - COALESCE((SELECT SUM(p2.monto) FROM pagos p2 WHERE p2.orden_id = o.id), 0), 0) AS saldo
+             FROM ordenes_servicio o
+             INNER JOIN vehiculos v ON v.id = o.vehiculo_id
+             INNER JOIN clientes c ON c.id = v.cliente_id
+             WHERE o.id = :id"
+        );
+        $stmt->execute([':id' => (int) $ordenId]);
+        $orden = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$orden) {
+            return null;
+        }
+        $stmt = $this->conn->prepare(
+            "SELECT od.*, r.codigo, r.descripcion
+             FROM orden_detalles od INNER JOIN repuestos r ON r.id = od.repuesto_id
+             WHERE od.orden_id = :id"
+        );
+        $stmt->execute([':id' => (int) $ordenId]);
+        $orden['detalles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $orden;
+    }
+
     public function actualizarCotizacion($ordenId, $estado) {
         if (!in_array($estado, ['Aprobada', 'Rechazada'], true)) {
             return false;
