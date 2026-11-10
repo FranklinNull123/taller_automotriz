@@ -170,6 +170,7 @@ $mensaje = $_GET['msg'] ?? '';
             </div>
             <form action="controllers/ClienteController.php?op=guardar" method="POST">
                 <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
                     <h6 class="text-danger fw-bold mb-3">Datos del propietario</h6>
                     <div class="row g-3">
                         <div class="col-md-6"><label class="form-label">Nombre completo <span class="text-danger">*</span></label><input type="text" name="nombre" class="form-control" required maxlength="150"></div>
@@ -178,6 +179,12 @@ $mensaje = $_GET['msg'] ?? '';
                     </div>
                     <hr class="my-4">
                     <h6 class="text-danger fw-bold mb-3">Datos del vehículo</h6>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                        <input type="text" id="vinVehiculo" class="form-control text-uppercase" maxlength="17" placeholder="VIN de 17 caracteres (opcional)" aria-label="VIN del vehículo">
+                        <button type="button" class="btn btn-outline-danger" id="consultarVin"><i class="bi bi-search me-1"></i>Autocompletar VIN</button>
+                    </div>
+                    <div id="vinMensaje" class="form-text mb-3" role="status"></div>
                     <div class="row g-3">
                         <div class="col-md-4"><label class="form-label">Placa <span class="text-danger">*</span></label><input type="text" name="placa" class="form-control text-uppercase" required maxlength="15"></div>
                         <div class="col-md-4"><label class="form-label">Marca</label><input type="text" name="marca" class="form-control" maxlength="50"></div>
@@ -210,6 +217,50 @@ document.addEventListener('DOMContentLoaded', function () {
             if (coincide) visibles++;
         });
         sinResultados.classList.toggle('d-none', visibles > 0 || !termino);
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const vin = document.getElementById('vinVehiculo');
+    const boton = document.getElementById('consultarVin');
+    const mensaje = document.getElementById('vinMensaje');
+    const marca = document.querySelector('[name="marca"]');
+    const modelo = document.querySelector('[name="modelo"]');
+    const anio = document.querySelector('[name="anio"]');
+    if (!vin || !boton) return;
+
+    boton.addEventListener('click', function () {
+        const valor = vin.value.trim().toUpperCase();
+        if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(valor)) {
+            mensaje.className = 'form-text mb-3 text-danger';
+            mensaje.textContent = 'Ingresa un VIN válido de 17 caracteres.';
+            return;
+        }
+        boton.disabled = true;
+        mensaje.className = 'form-text mb-3 text-muted';
+        mensaje.textContent = 'Consultando datos del vehículo...';
+        fetch('controllers/ApiController.php?op=vin&vin=' + encodeURIComponent(valor), { headers: { Accept: 'application/json' } })
+            .then(function (response) {
+                return response.json().then(function (data) {
+                    if (!response.ok || !data.ok) throw new Error(data.message || 'No se pudo consultar el VIN.');
+                    return data;
+                });
+            })
+            .then(function (data) {
+                marca.value = data.data.marca || '';
+                modelo.value = data.data.modelo || '';
+                anio.value = data.data.anio || '';
+                mensaje.className = 'form-text mb-3 text-success';
+                mensaje.textContent = 'Datos encontrados. Verifica la información antes de guardar.';
+            })
+            .catch(function (error) {
+                mensaje.className = 'form-text mb-3 text-danger';
+                mensaje.textContent = error.message;
+            })
+            .finally(function () {
+                boton.disabled = false;
+            });
     });
 });
 </script>
