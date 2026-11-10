@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/GarantiaModel.php';
 require_once __DIR__ . '/../includes/auth.php';
 requireAuth();
+requireRole(['admin', 'recepcion']);
 $garantiaModel = new GarantiaModel();
 
 $op = isset($_GET['op']) ? $_GET['op'] : '';

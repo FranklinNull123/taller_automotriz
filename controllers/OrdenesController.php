@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/OrdenModel.php';
 require_once __DIR__ . '/../includes/auth.php';
 requireAuth();
+requireRole(['admin', 'recepcion', 'mecanico']);
 $ordenModel = new OrdenModel();
 
 $op = isset($_GET['op']) ? $_GET['op'] : '';

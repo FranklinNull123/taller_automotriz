@@ -9,6 +9,13 @@ switch ($op) {
         requireValidCsrf();
         $usuario = isset($_POST['usuario']) ? trim($_POST['usuario']) : '';
         $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+        $now = time();
+        $lockoutSeconds = (int) envValue('LOGIN_LOCKOUT_SECONDS', 900);
+        $maxAttempts = (int) envValue('LOGIN_MAX_ATTEMPTS', 5);
+        if (!empty($_SESSION['login_locked_until']) && $_SESSION['login_locked_until'] > $now) {
+            header("Location: ../login.php?msg=locked");
+            exit();
+        }
 
         require_once __DIR__ . '/../config/conexion.php';
         $conexion = new Conexion();
@@ -29,10 +36,21 @@ switch ($op) {
             $_SESSION['nombre_usuario'] = $usuarioEncontrado['usuario'];
             $_SESSION['rol'] = $usuarioEncontrado['rol'];
             $_SESSION['debe_cambiar_password'] = (bool) $usuarioEncontrado['debe_cambiar_password'];
+            $_SESSION['login_attempts'] = 0;
+            unset($_SESSION['login_locked_until']);
             header("Location: ../index.php");
         } else {
-            // Retorna al login con una alerta de error en la URL
+            appLogger()->warning('Intento de login fallido', [
+                'usuario' => $usuario,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'desconocida'
+            ]);
+            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+            if ($_SESSION['login_attempts'] >= $maxAttempts) {
+                $_SESSION['login_locked_until'] = $now + $lockoutSeconds;
+                $_SESSION['login_attempts'] = 0;
+            }
             header("Location: ../login.php?msg=error");
+            exit();
         }
         break;
 
@@ -44,5 +62,40 @@ switch ($op) {
         header("Location: ../login.php");
         exit();
         break;
+
+    case 'cambiar_password':
+        requireAuth(true);
+        requirePostRequest();
+        requireValidCsrf();
+        $actual = $_POST['password_actual'] ?? '';
+        $nueva = $_POST['password_nueva'] ?? '';
+        $confirmacion = $_POST['password_confirmacion'] ?? '';
+        if (strlen($nueva) < 8 || $nueva !== $confirmacion) {
+            header("Location: ../cambiar-password.php?msg=error");
+            exit();
+        }
+
+        require_once __DIR__ . '/../config/conexion.php';
+        $conn = (new Conexion())->conectar();
+        $stmt = $conn->prepare("SELECT password_hash FROM usuarios WHERE id = :id AND activo = 1");
+        $stmt->execute([':id' => (int) $_SESSION['usuario_id']]);
+        $hash = $stmt->fetchColumn();
+        if (!$hash || !password_verify($actual, $hash)) {
+            header("Location: ../cambiar-password.php?msg=error");
+            exit();
+        }
+
+        $stmt = $conn->prepare(
+            "UPDATE usuarios
+             SET password_hash = :password_hash, debe_cambiar_password = 0
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            ':password_hash' => password_hash($nueva, PASSWORD_ARGON2ID),
+            ':id' => (int) $_SESSION['usuario_id']
+        ]);
+        $_SESSION['debe_cambiar_password'] = false;
+        header("Location: ../index.php");
+        exit();
 }
 ?>

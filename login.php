@@ -39,6 +39,11 @@ require_once __DIR__ . '/includes/auth.php';
         
         <form action="controllers/AuthController.php?op=login" method="POST">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
+            <?php if (($_GET['msg'] ?? '') === 'error'): ?>
+                <div class="alert alert-danger small">Usuario o contraseña incorrectos.</div>
+            <?php elseif (($_GET['msg'] ?? '') === 'locked'): ?>
+                <div class="alert alert-warning small">Demasiados intentos. Espera unos minutos antes de volver a intentarlo.</div>
+            <?php endif; ?>
             <div class="mb-3">
                 <label class="form-label fw-bold text-secondary small">Usuario</label>
                 <div class="input-group shadow-sm">

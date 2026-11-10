@@ -3,9 +3,20 @@ require_once __DIR__ . '/includes/auth.php';
 
 requireAuth();
 
-require_once 'views/layout/header.php';
+$permisosModulo = [
+    'clientes' => ['admin', 'recepcion'],
+    'ordenes' => ['admin', 'recepcion', 'mecanico'],
+    'inventario' => ['admin', 'recepcion'],
+    'garantias' => ['admin', 'recepcion'],
+    'reportes' => ['admin', 'recepcion']
+];
 
 $modulo = isset($_GET['modulo']) ? $_GET['modulo'] : 'inicio';
+if (isset($permisosModulo[$modulo])) {
+    requireRole($permisosModulo[$modulo]);
+}
+
+require_once 'views/layout/header.php';
 
 switch ($modulo) {
     case 'clientes':

@@ -1,8 +1,9 @@
 <?php
 require_once '../models/ReporteModel.php';
-require_once '../vendor/autoload.inc.php'; // Cargar Dompdf
+require_once '../vendor/autoload.php';
 require_once __DIR__ . '/../includes/auth.php';
 requireAuth();
+requireRole(['admin', 'recepcion']);
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -21,6 +22,8 @@ switch ($op) {
         // Habilitar carga de estilos e instanciar Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->setChroot(__DIR__ . '/../');
         $dompdf = new Dompdf($options);
 
         // Diseñar la plantilla HTML (puedes usar tu propia estructura)

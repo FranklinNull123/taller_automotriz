@@ -2,6 +2,7 @@
 require_once '../models/ClienteModel.php';
 require_once __DIR__ . '/../includes/auth.php';
 requireAuth();
+requireRole(['admin', 'recepcion']);
 
 $clienteModel = new ClienteModel();
 
